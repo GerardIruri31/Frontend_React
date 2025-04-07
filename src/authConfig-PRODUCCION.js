@@ -21,19 +21,19 @@ export const b2cPolicies = {
   authorities: {
     signUpSignIn: {
       authority:
-        "https://autopublicamos.b2clogin.com/autopublicamos.onmicrosoft.com/B2C_1_SingUp_SingIn",
+        "https://autopubli.b2clogin.com/autopubli.onmicrosoft.com/B2C_1_SingUp_SingIn",
     },
     forgotPassword: {
       authority:
-        "https://autopublicamos.b2clogin.com/autopublicamos.onmicrosoft.com/B2C_1_reset",
+        "https://autopubli.b2clogin.com/autopubli.onmicrosoft.com/B2C_1_reset",
     },
     editProfile: {
       authority:
-        "https://autopublicamos.b2clogin.com/autopublicamos.onmicrosoft.com/B2C_1_edit_profile",
+        "https://autopubli.b2clogin.com/autopubli.onmicrosoft.com/B2C_1_edit_profile",
     },
   },
   // URI general del servicio
-  authorityDomain: "autopublicamos.b2clogin.com",
+  authorityDomain: "autopubli.b2clogin.com",
 };
 
 /**
@@ -45,13 +45,13 @@ export const msalConfig = {
   //
   auth: {
     // ID de tu app registrada en Azure B2C
-    clientId: "43db384b-42cb-42ad-b1b7-da35e7964e30", // This is the ONLY mandatory field that you need to supply.
+    clientId: "14b06491-66d5-4157-b6d6-1cc8a5e09517", // This is the ONLY mandatory field that you need to supply.
     authority: b2cPolicies.authorities.signUpSignIn.authority, // Choose SUSI as your default authority.
     knownAuthorities: [b2cPolicies.authorityDomain], // Mark your B2C tenant's domain as trusted.
     // a dónde vuelve luego del login
-    redirectUri: "https://capp-reactv1.thankfulfield-1f17e46d.centralus.azurecontainerapps.io", // You must register this URI on Azure Portal/App Registration. Defaults to window.location.origin
+    redirectUri: "https://cont-app-frontend.bluewave-a9df1497.centralus.azurecontainerapps.io", // You must register this URI on Azure Portal/App Registration. Defaults to window.location.origin
     // a dónde vuelve luego del logout
-    postLogoutRedirectUri: "https://capp-reactv1.thankfulfield-1f17e46d.centralus.azurecontainerapps.io", // Indicates the page to navigate after logout.
+    postLogoutRedirectUri: "https://cont-app-frontend.bluewave-a9df1497.centralus.azurecontainerapps.io", // Indicates the page to navigate after logout.
     navigateToLoginRequestUrl: false, // If "true", will navigate back to the original request location before processing the auth code response.
   },
   cache: {
