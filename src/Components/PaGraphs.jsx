@@ -18,16 +18,17 @@ import { useMsal } from "@azure/msal-react";
 
 const PaGraphs = () => {
   const navigate = useNavigate();
-    const { instance } = useMsal();
-  
+  const { instance } = useMsal();
 
   const [userRol, setUserRol] = useState("");
-    
-      useEffect(() => {
-        const account = instance.getActiveAccount();
-        const rol = account?.idTokenClaims?.jobTitle ? account.idTokenClaims.jobTitle.toLowerCase() : "null";
-        setUserRol(rol);
-      }, [instance]);
+
+  useEffect(() => {
+    const account = instance.getActiveAccount();
+    const rol = account?.idTokenClaims?.jobTitle
+      ? account.idTokenClaims.jobTitle.toLowerCase()
+      : "null";
+    setUserRol(rol);
+  }, [instance]);
 
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -222,6 +223,10 @@ const PaGraphs = () => {
     }
   };
   const recordsFiltrados = records.filter((record) => record.eficacia !== null);
+  const maxEficacia = Math.max(...recordsFiltrados.map((r) => r.eficacia || 0));
+  const topeEficacia = Math.ceil(maxEficacia / 10) * 10;
+  const ticks = Array.from({ length: topeEficacia / 10 + 1 }, (_, i) => i * 10);
+  const domain = [0, topeEficacia];
 
   return (
     <div className="PaGraphs-container-general">
@@ -400,7 +405,14 @@ const PaGraphs = () => {
                       interval={0} // 🔥 Muestra TODAS las etiquetas sin saltarse ninguna
                       tickFormatter={(value) => `${value}`} // 🔥 Asegura que los valores se rendericen correctamente
                     />
-                    <YAxis tickFormatter={(value) => value.toLocaleString()} />
+                    <YAxis
+                      tickFormatter={(value) => value.toLocaleString()}
+                      interval={0}
+                      ticks={ticks}
+                      domain={domain}
+                      padding={{ top: 10 }}
+                    />
+
                     <Tooltip />
                     <Legend
                       wrapperStyle={{
@@ -432,9 +444,10 @@ const PaGraphs = () => {
             )}
             <button
               className="download-button"
-              onClick={() =>
-                handleDownloadGraph(graph2Ref, "PA_Effectiveness_Graph")
-              }
+              onClick={() => {
+                handleDownloadGraph(graph2Ref, "PA_Effectiveness_Graph");
+                playSound();
+              }}
             >
               Download Graph
             </button>

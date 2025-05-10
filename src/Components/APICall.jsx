@@ -5,16 +5,17 @@ import clickSound from "../Sounds/clicksound.mp3"; // Asegúrate de tener este a
 import { useMsal } from "@azure/msal-react";
 
 const TikTokAPICall = () => {
-
   const [userId, setUserId] = useState("");
   const { instance } = useMsal();
-  
+
   useEffect(() => {
     const account = instance.getActiveAccount();
-    if (account?.idTokenClaims) {
-      setUserId(account.idTokenClaims.emails[0]);
-    }
+    const id = account?.idTokenClaims?.emails[0]
+      ? account.idTokenClaims.emails[0].toLowerCase()
+      : "null";
+    setUserId(id);
   }, [instance]);
+
   const navigate = useNavigate();
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -373,7 +374,6 @@ const TikTokAPICall = () => {
           "Tracking Date": record["Tracking date"] || "Not found: N/A",
           "Tracking Time": record["Tracking time"] || "Not found: N/A",
           "Logged-in User": record["Logged-in User"] || "Not found: N/A",
-
         }));
         setRecords(filteredData);
         setTimeout(() => setDataLoaded(true), 100);
@@ -513,7 +513,6 @@ const TikTokAPICall = () => {
               <th>Tracking Date</th>
               <th>Tracking Time</th>
               <th>Logged-in User</th>
-
             </tr>
           </thead>
 
@@ -606,7 +605,6 @@ const TikTokAPICall = () => {
                       <h2>No Data Found</h2>
                       <p>We couldn't find any data to display.</p>
                     </div>
-
                   </div>
                 </td>
               </tr>

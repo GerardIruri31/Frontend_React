@@ -17,7 +17,6 @@ import PaGraphs from "./Components/PaGraphs";
 import AuthorGraphs from "./Components/AuthorGraphs";
 import AnalystHomeScreen from "./Components/AnalystHomeScreen";
 
-
 import "./App.css";
 
 // 🔐 Componente de ruta privada que redirige al login de B2C si no está logueado
@@ -50,12 +49,13 @@ const RedirectToLogin = () => {
       const account = instance.getActiveAccount();
 
       if (isAuthenticated && account?.idTokenClaims) {
+        const rol = account?.idTokenClaims?.jobTitle
+          ? account.idTokenClaims.jobTitle.toLowerCase()
+          : "null";
 
-        const rol = account?.idTokenClaims?.jobTitle ? account.idTokenClaims.jobTitle.toLowerCase() : "null";
+        //console.log("Valores: ", account.idTokenClaims)
+        //console.log("Rol: " + rol);
 
-        console.log("Valores: ", account.idTokenClaims)
-        console.log("Rol: " + rol);
-        
         if (rol === "admin") {
           navigate("/home");
         } else if (rol === "analyst") {
@@ -78,8 +78,6 @@ const RedirectToLogin = () => {
   return <div>Redirigiendo a Azure B2C ...</div>;
 };
 
-
-
 const UserWrapper = () => {
   const { instance } = useMsal();
   const account = instance.getActiveAccount();
@@ -90,8 +88,6 @@ const UserWrapper = () => {
   return <HomeScreen rol={rol} email={email} name={nombre} />;
 };
 
-
-
 const AnalystWrapper = () => {
   const { instance } = useMsal();
   const account = instance.getActiveAccount();
@@ -100,8 +96,6 @@ const AnalystWrapper = () => {
   const nombre = account?.idTokenClaims?.given_name;
   return <AnalystHomeScreen rol={rol} email={email} name={nombre} />;
 };
-
-
 
 const App = () => {
   return (

@@ -1,7 +1,8 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "./DataMaintenance.css";
 import { useNavigate } from "react-router-dom";
 import clickSound from "../Sounds/clicksound.mp3"; // Asegúrate de tener este archivo en la carpeta src
+import { useMsal } from "@azure/msal-react";
 
 const DataMaintenance = () => {
   const navigate = useNavigate();
@@ -13,6 +14,17 @@ const DataMaintenance = () => {
 
   const [file, SetFile] = useState(null);
   const [isLoadingImportExcel, setIsLoadingImportExcel] = useState(false);
+
+  const { instance } = useMsal();
+  const [userId, setUserId] = useState("");
+
+  useEffect(() => {
+    const account = instance.getActiveAccount();
+    const id = account?.idTokenClaims?.emails[0]
+      ? account.idTokenClaims.emails[0].toLowerCase()
+      : "null";
+    setUserId(id);
+  }, [instance]);
 
   // Sonidos al hacer clic
   const audioRef = useRef(new Audio(clickSound));
@@ -310,6 +322,7 @@ const DataMaintenance = () => {
     setDataLoaded(false);
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("userId", userId);
     try {
       const startTime = new Date();
       //const azureURL ="https://capp-springbootv1.thankfulfield-1f17e46d.centralus.azurecontainerapps.io";
@@ -437,7 +450,12 @@ const DataMaintenance = () => {
                   <tr key={index}>
                     {Object.keys(Tables[selectedCategory] || {}).map(
                       (field, i) => (
-                        <td key={i}>{row[field] || "Not found: N/A"}</td>
+                        <td key={i}>
+                          {" "}
+                          {row[field] !== undefined && row[field] !== null
+                            ? row[field]
+                            : "Not found: N/A"}{" "}
+                        </td>
                       )
                     )}
                   </tr>
