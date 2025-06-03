@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect} from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./DataBaseQueries.css";
 import clickSound from "../Sounds/clicksound.mp3"; // Asegúrate de tener este archivo en la carpeta src
@@ -6,13 +6,15 @@ import { useMsal } from "@azure/msal-react";
 
 const DataBaseQueries = () => {
   const { instance } = useMsal();
-  
-  const [userRol, setUserRol] = useState("");  
-    useEffect(() => {
-      const account = instance.getActiveAccount();
-      const rol = account?.idTokenClaims?.jobTitle ? account.idTokenClaims.jobTitle.toLowerCase() : "null";
-      setUserRol(rol);
-    }, [instance]);
+
+  const [userRol, setUserRol] = useState("");
+  useEffect(() => {
+    const account = instance.getActiveAccount();
+    const rol = account?.idTokenClaims?.jobTitle
+      ? account.idTokenClaims.jobTitle.toLowerCase()
+      : "null";
+    setUserRol(rol);
+  }, [instance]);
   const navigate = useNavigate();
   // 🔹 Estados para cada filtro
   const [postDateFrom, setPostDateFrom] = useState("");
@@ -50,8 +52,85 @@ const DataBaseQueries = () => {
     audioRef.current.play();
   };
 
+  // Variable que determina CLICK EN BOTÓN
+  const [buttonClick, setButtonClick] = useState("");
+  const [buttonConcisoDisable, setButtonConcisoDisable] = useState(false);
+  const [buttonConcisoText, setButtonConcisoText] = useState(
+    "Initiate Short Report"
+  );
+
+  const [buttonScoreDisable, setButtonScoreDisable] = useState(false);
+  const [buttonScoreText, setButtonScoreText] = useState(
+    "Initiate Score Scenes"
+  );
+
+  const defaultColumns = [
+    "Post Code",
+    "Author Name",
+    "Book Name",
+    "Number of Scene",
+    "Scene Name",
+    "Post Type",
+    "PA Name",
+    "Date Posted",
+    "Time Posted",
+    "TikTok Username",
+    "Post URL",
+    "Views",
+    "Likes",
+    "Comments",
+    "Reposted",
+    "Saves",
+    "Engagement Rate",
+    "Interactions",
+    "Hashtags",
+    "# of Hashtags",
+    "Sound URL",
+    "Region of Posting",
+    "Tracking Date",
+    "Tracking Time",
+    "Logged-in User",
+  ];
+
+  const conciseColumns = [
+    "Author Name",
+    "Book Name",
+    "Scene Name",
+    "Post Type",
+    "Date Posted",
+    "Time Posted",
+    "TikTok Username",
+    "Post URL",
+    "Views",
+    "Likes",
+    "Comments",
+    "Reposted",
+    "Saves",
+    "Engagement Rate",
+    "Interactions",
+    "Hashtags",
+    "# of Hashtags",
+    "Sound URL",
+  ];
+
+  const scoreSceneColumns = [
+    "Author Name",
+    "Book Name",
+    "Number of Scene",
+    "Scene Name",
+    "Scene Score",
+  ];
+
+  // Luego, en el JSX, antes de return:
+  const columns =
+    buttonClick === "conciso"
+      ? conciseColumns
+      : buttonClick === "scoreScene"
+      ? scoreSceneColumns
+      : defaultColumns;
+
   // 🔹 Manejo de la consulta a BD
-  const handleDBQuery = async () => {
+  const handleDBQuery = async (reportType) => {
     if (!postDateFrom || !postDateTo) {
       alert("⚠️ All Posted Date fields are required!");
       return; // Detiene la ejecución si hay campos vacíos
@@ -92,7 +171,8 @@ const DataBaseQueries = () => {
       setRecords([]); // Limpia los registros anteriores
       setDataLoaded(false);
       setButtonDisable(true);
-      setButtonText("Database Query in Progress..."); // Cambia el texto mientras se ejecuta
+      setButtonConcisoDisable(true);
+      setButtonScoreDisable(true);
       setIsLoading(true);
       const startTime = new Date();
 
@@ -166,109 +246,279 @@ const DataBaseQueries = () => {
         InteractionMax: interactions.max,
       };
 
-      console.log(
-        "🚀 Starting query to the database with data (DataBaseQueries - handleDBQuery):",
-        requestBody
-      );
+      setLog((prevLog) => [
+        ...prevLog,
+        "🔄 Connecting to the PostgreSQL Database on the Azure Service",
+      ]);
+      // CREAR VARIABLE QUE DISTINGA CLICK EN BOTONES
 
-      try {
-        setLog((prevLog) => [
-          ...prevLog,
-          "🔄 Connecting to the PostgreSQL Database on the Azure Service",
-        ]);
+      if (reportType == "conciso") {
+        try {
+          console.log(
+            "🚀 Starting query to the database with data (DataBaseQueries - SHORT REPORT):",
+            requestBody
+          );
+          setButtonConcisoText("Database Query in Progress..."); // Cambia el texto mientras se ejecuta
+          //const azureURL = "http://localhost:8080";
+          //const azureURL ="https://capp-springbootv1.thankfulfield-1f17e46d.centralus.azurecontainerapps.io";
+          const azureURL = import.meta.env.VITE_AZURE_API_URL;
+          const response = await fetch(azureURL + "/databasequery/conciso", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestBody),
+          });
 
-        // 🔹 Aquí llamarías a tu endpoint backend, p.ej.:
-        //const azureURL = "http://localhost:8080";
-        //const azureURL ="https://capp-springbootv1.thankfulfield-1f17e46d.centralus.azurecontainerapps.io";
-        const azureURL = import.meta.env.VITE_AZURE_API_URL;
-        const response = await fetch(azureURL + "/databasequery/filter", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestBody),
-        });
+          if (!response.ok) {
+            alert(`❌ Server responded with status ${response.status}`);
+            throw new Error(`Server responded with status ${response.status}`);
+          }
 
-        if (!response.ok) {
-          alert(`❌ Server responded with status ${response.status}`);
-          throw new Error(`Server responded with status ${response.status}`);
-        }
-
-        setLog((prevLog) => [
-          ...prevLog,
-          "📥 Successful responde from Database Query. Processing data ...",
-        ]);
-
-        const data = await response.json();
-        console.log("API Response (DatabaseQueries - handleDBQuery):", data);
-        const filteredData = data.map((record) => ({
-          "Post Code": record["Post Code"] || "Not found: N/A",
-          "Author Name": record["Author name"] || "Not found: N/A",
-          "Book Name": record["Book name"] || "Not found: N/A",
-          "Number of Scene": record["Number of Scene"] || "Not found: N/A",
-          "Scene Name": record["Scene name"] || "Not found: N/A",
-          "Post Type": record["Post Type"] || "Not found: N/A",
-          "PA Name": record["PA name"] || "Not found: N/A",
-          "Date Posted": record["Date posted"] || "Not found: N/A",
-          "Time Posted": record["Time posted"] || "Not found: N/A",
-          "TikTok Username": record["TikTok Username"] || "Not found: N/A",
-          "Post URL": record["Post URL"] || "Not found: N/A",
-          Views: record["Views"] || 0,
-          Likes: record["Likes"] || 0,
-          Comments: record["Comments"] || 0,
-          Reposted: record["Reposted"] || 0,
-          Saves: record["Saves"] || 0,
-          "Engagement Rate":
-            Math.round(record["Engagement rate"] * 100.0) / 100.0 || 0,
-          Interactions: record["Interactions"] || 0,
-          Hashtags: record["Hashtags"] || "Not found: N/A",
-          "# of Hashtags": record["Number of Hashtags"] || 0,
-          "Sound URL": record["Sound URL"] || "Not found: N/A",
-          "Region of Posting": record["Region Code"] || "Not found: N/A",
-          "Tracking Date": record["Tracking date"] || "Not found: N/A",
-          "Tracking Time": record["Tracking time"] || "Not found: N/A",
-          "Logged-in User": record["Logged-in User"] || "Not found: N/A",
-
-        }));
-        setRecords(filteredData);
-        const registrosProcesados = data.length;
-        setLog((prevLog) => [
-          ...prevLog,
-          `📊 Amount of Records from Database Query Processed: ${registrosProcesados}`,
-        ]);
-        const endTime = new Date();
-        const durationInSeconds = Math.floor((endTime - startTime) / 1000); // 🔹 Convertimos a segundos enteros
-        const minutes = Math.floor(durationInSeconds / 60); // 🔹 Extraemos los minutos
-        const seconds = durationInSeconds % 60; // 🔹 Extraemos los segundos restantes
-        const formattedTime = `${minutes}:${seconds
-          .toString()
-          .padStart(2, "0")}`; // 🔹 Formateamos el tiempo
-
-        setLog((prevLog) => [
-          ...prevLog,
-          `⏳ Total function execution time: ${formattedTime} minutes`,
-        ]);
-        if (data.length > 0) {
           setLog((prevLog) => [
             ...prevLog,
-            `✅ Server is ready for downloading the generated Excel file`,
+            "📥 Successful responde from Database Query. Processing data ...",
           ]);
-        } else {
+
+          const data = await response.json();
+          console.log("API Response (DatabaseQueries - SHORT REPORT):", data);
+          const filteredData = data.map((record) => ({
+            "Author Name": record["Author name"] || "Not found: N/A",
+            "Book Name": record["Book name"] || "Not found: N/A",
+            "Scene Name": record["Scene name"] || "Not found: N/A",
+            "Post Type": record["Post Type"] || "Not found: N/A",
+            "Date Posted": record["Date posted"] || "Not found: N/A",
+            "Time Posted": record["Time posted"] || "Not found: N/A",
+            "TikTok Username": record["TikTok Username"] || "Not found: N/A",
+            "Post URL": record["Post URL"] || "Not found: N/A",
+            Views: record["Views"] || 0,
+            Likes: record["Likes"] || 0,
+            Comments: record["Comments"] || 0,
+            Reposted: record["Reposted"] || 0,
+            Saves: record["Saves"] || 0,
+            "Engagement Rate":
+              Math.round(record["Engagement rate"] * 100.0) / 100.0 || 0,
+            Interactions: record["Interactions"] || 0,
+            Hashtags: record["Hashtags"] || "Not found: N/A",
+            "# of Hashtags": record["Number of Hashtags"] || 0,
+            "Sound URL": record["Sound URL"] || "Not found: N/A",
+          }));
+          setRecords(filteredData);
+          const registrosProcesados = data.length;
           setLog((prevLog) => [
             ...prevLog,
-            `❌ Execution not completed. No data available`,
+            `📊 Amount of Records from Database Query Processed: ${registrosProcesados}`,
           ]);
-        }
+          const endTime = new Date();
+          const durationInSeconds = Math.floor((endTime - startTime) / 1000); // 🔹 Convertimos a segundos enteros
+          const minutes = Math.floor(durationInSeconds / 60); // 🔹 Extraemos los minutos
+          const seconds = durationInSeconds % 60; // 🔹 Extraemos los segundos restantes
+          const formattedTime = `${minutes}:${seconds
+            .toString()
+            .padStart(2, "0")}`; // 🔹 Formateamos el tiempo
 
-        setDataLoaded(true);
-      } catch (error) {
-        console.error(
-          "❌ Error fetching data from DB (DatabaseQueries - handleDBQuery):",
-          error
-        );
-        alert("❌ Failed to fetch data from DB.");
-      } finally {
-        setIsLoading(false);
-        setButtonDisable(false);
-        setButtonText("Initiate Database Query");
+          setLog((prevLog) => [
+            ...prevLog,
+            `⏳ Total function execution time: ${formattedTime} minutes`,
+          ]);
+          if (data.length > 0) {
+            setLog((prevLog) => [
+              ...prevLog,
+              `✅ Server is ready for downloading the generated Excel file`,
+            ]);
+          } else {
+            setLog((prevLog) => [
+              ...prevLog,
+              `❌ Execution not completed. No data available`,
+            ]);
+          }
+
+          setDataLoaded(true);
+        } catch (error) {
+          console.error(
+            "❌ Error fetching data from DB (DatabaseQueries - REPORTE CONCISO):",
+            error
+          );
+          alert("❌ Failed to fetch data from DB.");
+        } finally {
+          setIsLoading(false);
+          setButtonDisable(false);
+          setButtonConcisoText("Initiate Short Report");
+        }
+      } else if (reportType == "scoreScene") {
+        try {
+          console.log(
+            "🚀 Starting query to the database with data (DataBaseQueries - SCORE SCENE):",
+            requestBody
+          );
+          setButtonScoreText("Database Query in Progress..."); // Cambia el texto mientras se ejecuta
+
+          //const azureURL = "http://localhost:8080";
+          //const azureURL ="https://capp-springbootv1.thankfulfield-1f17e46d.centralus.azurecontainerapps.io";
+          const azureURL = import.meta.env.VITE_AZURE_API_URL;
+          const response = await fetch(azureURL + "/databasequery/scorescene", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestBody),
+          });
+
+          if (!response.ok) {
+            alert(`❌ Server responded with status ${response.status}`);
+            throw new Error(`Server responded with status ${response.status}`);
+          }
+
+          setLog((prevLog) => [
+            ...prevLog,
+            "📥 Successful responde from Database Query. Processing data ...",
+          ]);
+
+          const data = await response.json();
+          console.log("API Response (DatabaseQueries - SCORE SCENE):", data);
+          const filteredData = data.map((record) => ({
+            "Author Name": record["author_name"] || "Not found: N/A",
+            "Book Name": record["book"] || "Not found: N/A",
+            "Number of Scene": record["scene_code"] || "Not found: N/A",
+            "Scene Name": record["scene"] || "Not found: N/A",
+            "Scene Score": record["score_scene"] || "Not found: N/A",
+          }));
+          setRecords(filteredData);
+          const registrosProcesados = data.length;
+          setLog((prevLog) => [
+            ...prevLog,
+            `📊 Amount of Records from Database Query Processed: ${registrosProcesados}`,
+          ]);
+          const endTime = new Date();
+          const durationInSeconds = Math.floor((endTime - startTime) / 1000); // 🔹 Convertimos a segundos enteros
+          const minutes = Math.floor(durationInSeconds / 60); // 🔹 Extraemos los minutos
+          const seconds = durationInSeconds % 60; // 🔹 Extraemos los segundos restantes
+          const formattedTime = `${minutes}:${seconds
+            .toString()
+            .padStart(2, "0")}`; // 🔹 Formateamos el tiempo
+
+          setLog((prevLog) => [
+            ...prevLog,
+            `⏳ Total function execution time: ${formattedTime} minutes`,
+          ]);
+          if (data.length > 0) {
+            setLog((prevLog) => [
+              ...prevLog,
+              `✅ Server is ready for downloading the generated Excel file`,
+            ]);
+          } else {
+            setLog((prevLog) => [
+              ...prevLog,
+              `❌ Execution not completed. No data available`,
+            ]);
+          }
+
+          setDataLoaded(true);
+        } catch (error) {
+          console.error(
+            "❌ Error fetching data from DB (DatabaseQueries - SCORE SCENES):",
+            error
+          );
+          alert("❌ Failed to fetch data from DB.");
+        } finally {
+          setIsLoading(false);
+          setButtonDisable(false);
+          setButtonScoreText("Initiate Score Scenes");
+        }
+      } else {
+        try {
+          console.log(
+            "🚀 Starting query to the database with data (DataBaseQueries - HandleDBQuery):",
+            requestBody
+          );
+          setButtonText("Database Query in Progress..."); // Cambia el texto mientras se ejecuta
+          //const azureURL = "http://localhost:8080";
+          //const azureURL ="https://capp-springbootv1.thankfulfield-1f17e46d.centralus.azurecontainerapps.io";
+          const azureURL = import.meta.env.VITE_AZURE_API_URL;
+          const response = await fetch(azureURL + "/databasequery/filter", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestBody),
+          });
+
+          if (!response.ok) {
+            alert(`❌ Server responded with status ${response.status}`);
+            throw new Error(`Server responded with status ${response.status}`);
+          }
+
+          setLog((prevLog) => [
+            ...prevLog,
+            "📥 Successful responde from Database Query. Processing data ...",
+          ]);
+
+          const data = await response.json();
+          console.log("API Response (DatabaseQueries - handleDBQuery):", data);
+          const filteredData = data.map((record) => ({
+            "Post Code": record["Post Code"] || "Not found: N/A",
+            "Author Name": record["Author name"] || "Not found: N/A",
+            "Book Name": record["Book name"] || "Not found: N/A",
+            "Number of Scene": record["Number of Scene"] || "Not found: N/A",
+            "Scene Name": record["Scene name"] || "Not found: N/A",
+            "Post Type": record["Post Type"] || "Not found: N/A",
+            "PA Name": record["PA name"] || "Not found: N/A",
+            "Date Posted": record["Date posted"] || "Not found: N/A",
+            "Time Posted": record["Time posted"] || "Not found: N/A",
+            "TikTok Username": record["TikTok Username"] || "Not found: N/A",
+            "Post URL": record["Post URL"] || "Not found: N/A",
+            Views: record["Views"] || 0,
+            Likes: record["Likes"] || 0,
+            Comments: record["Comments"] || 0,
+            Reposted: record["Reposted"] || 0,
+            Saves: record["Saves"] || 0,
+            "Engagement Rate":
+              Math.round(record["Engagement rate"] * 100.0) / 100.0 || 0,
+            Interactions: record["Interactions"] || 0,
+            Hashtags: record["Hashtags"] || "Not found: N/A",
+            "# of Hashtags": record["Number of Hashtags"] || 0,
+            "Sound URL": record["Sound URL"] || "Not found: N/A",
+            "Region of Posting": record["Region Code"] || "Not found: N/A",
+            "Tracking Date": record["Tracking date"] || "Not found: N/A",
+            "Tracking Time": record["Tracking time"] || "Not found: N/A",
+            "Logged-in User": record["Logged-in User"] || "Not found: N/A",
+          }));
+          setRecords(filteredData);
+          const registrosProcesados = data.length;
+          setLog((prevLog) => [
+            ...prevLog,
+            `📊 Amount of Records from Database Query Processed: ${registrosProcesados}`,
+          ]);
+          const endTime = new Date();
+          const durationInSeconds = Math.floor((endTime - startTime) / 1000); // 🔹 Convertimos a segundos enteros
+          const minutes = Math.floor(durationInSeconds / 60); // 🔹 Extraemos los minutos
+          const seconds = durationInSeconds % 60; // 🔹 Extraemos los segundos restantes
+          const formattedTime = `${minutes}:${seconds
+            .toString()
+            .padStart(2, "0")}`; // 🔹 Formateamos el tiempo
+
+          setLog((prevLog) => [
+            ...prevLog,
+            `⏳ Total function execution time: ${formattedTime} minutes`,
+          ]);
+          if (data.length > 0) {
+            setLog((prevLog) => [
+              ...prevLog,
+              `✅ Server is ready for downloading the generated Excel file`,
+            ]);
+          } else {
+            setLog((prevLog) => [
+              ...prevLog,
+              `❌ Execution not completed. No data available`,
+            ]);
+          }
+
+          setDataLoaded(true);
+        } catch (error) {
+          console.error(
+            "❌ Error fetching data from DB (DatabaseQueries - handleDBQuery):",
+            error
+          );
+          alert("❌ Failed to fetch data from DB.");
+        } finally {
+          setIsLoading(false);
+          setButtonDisable(false);
+          setButtonText("Initiate Database Query");
+        }
       }
     }
   };
@@ -658,17 +908,42 @@ const DataBaseQueries = () => {
             </div>
           </div>
         </div>
-
-        <button
-          className="dbquery-button"
-          onClick={() => {
-            handleDBQuery();
-            playSound();
-          }}
-          disabled={buttonDisable}
-        >
-          {buttonDisable ? buttonText : buttonText}
-        </button>
+        <div className="dbquery-buttons-group">
+          {/* Botón para reporte conciso */}
+          <button
+            className="dbquery-button"
+            onClick={() => {
+              setButtonClick("filter");
+              handleDBQuery("filter");
+              playSound();
+            }}
+            disabled={buttonDisable}
+          >
+            {buttonDisable ? buttonText : buttonText}
+          </button>
+          <button
+            className="dbquery-button"
+            onClick={() => {
+              setButtonClick("conciso");
+              handleDBQuery("conciso");
+              playSound();
+            }}
+            disabled={buttonDisable}
+          >
+            {buttonConcisoDisable ? buttonConcisoText : buttonConcisoText}
+          </button>
+          <button
+            className="dbquery-button"
+            onClick={() => {
+              setButtonClick("scoreScene");
+              handleDBQuery("scoreScene");
+              playSound();
+            }}
+            disabled={buttonDisable}
+          >
+            {buttonScoreDisable ? buttonScoreText : buttonScoreText}
+          </button>
+        </div>
       </div>
 
       <div className="dbqueries-results">
@@ -700,123 +975,98 @@ const DataBaseQueries = () => {
         <table className="results-table">
           <thead>
             <tr>
-              <th>Post Code</th>
-              <th>Author Name</th>
-              <th>Book Name</th>
-              <th>Number of Scene</th>
-              <th>Scene Name</th>
-              <th>Post Type</th>
-              <th>PA Name</th>
-              <th>Date Posted</th>
-              <th>Time Posted</th>
-              <th>Username TikTok Account</th>
-              <th>Post URL</th>
-              <th>Views</th>
-              <th>Likes</th>
-              <th>Comments</th>
-              <th>Reposted</th>
-              <th>Saves</th>
-              <th>Engagement Rate</th>
-              <th>Interactions</th>
-              <th>Hashtags</th>
-              <th># of Hashtags</th>
-              <th>Sound URL</th>
-              <th>Region of Posting</th>
-              <th>Tracking Date</th>
-              <th>Tracking Time</th>
-              <th>Logged-in User</th>
+              {columns.map((col) => (
+                <th key={col}>{col}</th>
+              ))}
             </tr>
           </thead>
 
           <tbody>
             {records.length > 0 ? (
-              records.slice(0, 20).map((record, index) => {
-                const videoUrl = record["Post URL"] || "";
-                const match = videoUrl.match(/video\/(\d+)/);
-                const videoId = match ? match[1] : "Not found: N/A";
+              records.slice(0, 20).map((record, rowIndex) => (
+                <tr key={rowIndex}>
+                  {columns.map((col) => {
+                    if (col === "Scene Score") {
+                      const rawValue = record[col]; // Ej: 0.5 o 0.346
+                      const numValue = Number(rawValue) || 0; // Convertimos a number (si viene como string)
+                      const formatted = numValue.toFixed(2); // Siempre dos decimales: "0.50", "0.35", "0.34", etc.
+                      return <td key={col}>{formatted}</td>;
+                    }
 
-                const soundURL = record["Sound URL"] || "";
-                const soundmatch = soundURL.match(/music\/.*?-(\d+)/);
-                const soundId = soundmatch ? soundmatch[1] : "Not found: N/A";
+                    // Si la columna es "Post URL", renderiza el link con ID de video
+                    if (col === "Post URL") {
+                      const url = record[col] || "";
+                      const match = url.match(/video\/(\d+)/);
+                      const videoId = match ? match[1] : "No URL";
+                      return (
+                        <td key={col}>
+                          {url ? (
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {videoId}
+                            </a>
+                          ) : (
+                            "No URL"
+                          )}
+                        </td>
+                      );
+                    }
 
-                return (
-                  <tr key={index}>
-                    <td>{record["Post Code"]}</td>
-                    <td>{record["Author Name"]}</td>
-                    <td>{record["Book Name"]}</td>
-                    <td>{record["Number of Scene"]}</td>
-                    <td>{record["Scene Name"]}</td>
-                    <td>{record["Post Type"]}</td>
-                    <td>{record["PA Name"]}</td>
-                    <td>{record["Date Posted"]}</td>
-                    <td>{record["Time Posted"]}</td>
-                    <td>{record["TikTok Username"]}</td>
-                    <td>
-                      {videoUrl ? (
-                        <a
-                          href={videoUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {videoId}
-                        </a>
-                      ) : (
-                        "No URL"
-                      )}
-                    </td>
-                    <td>{record["Views"]}</td>
-                    <td>{record["Likes"]}</td>
-                    <td>{record["Comments"]}</td>
-                    <td>{record["Reposted"]}</td>
-                    <td>{record["Saves"]}</td>
-                    <td>{record["Engagement Rate"]}</td>
-                    <td>{record["Interactions"]}</td>
-                    <td>{record["Hashtags"]}</td>
-                    <td>{record["# of Hashtags"]}</td>
-                    <td>
-                      {soundURL ? (
-                        <a
-                          href={soundURL}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {soundId}
-                        </a>
-                      ) : (
-                        "No Sound"
-                      )}
-                    </td>
-                    <td>{record["Region of Posting"]}</td>
-                    <td>{record["Tracking Date"]}</td>
-                    <td>{record["Tracking Time"]}</td>
-                    <td>{record["Logged-in User"]}</td>
-                  </tr>
-                );
-              })
+                    // Si la columna es "Sound URL", renderiza el link con ID de sonido
+                    if (col === "Sound URL") {
+                      const url = record[col] || "";
+                      const match = url.match(/music\/.*?-(\d+)/);
+                      const soundId = match ? match[1] : "No Sound";
+                      return (
+                        <td key={col}>
+                          {url ? (
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {soundId}
+                            </a>
+                          ) : (
+                            "No Sound"
+                          )}
+                        </td>
+                      );
+                    }
+
+                    // Para el resto de columnas, muestra el valor o "Not found: N/A"
+                    return <td key={col}>{record[col] ?? "Not found: N/A"}</td>;
+                  })}
+                </tr>
+              ))
             ) : (
               <tr>
-                <td colSpan="25" className="no-data-placeholder">
+                <td colSpan={columns.length} className="no-data-placeholder">
                   <div className="no-data-row5">
-                    <div className="no-data-container5 table">
-                      <h2>No Data Found</h2>
-                      <p>We couldn't find any data to display.</p>
-                    </div>
-                    <div className="no-data-container5 table">
-                      <h2>No Data Found</h2>
-                      <p>We couldn't find any data to display.</p>
-                    </div>
-                    <div className="no-data-container5 table">
-                      <h2>No Data Found</h2>
-                      <p>We couldn't find any data to display.</p>
-                    </div>
-                    <div className="no-data-container5 table">
-                      <h2>No Data Found</h2>
-                      <p>We couldn't find any data to display.</p>
-                    </div>
-                    <div className="no-data-container5 table">
-                      <h2>No Data Found</h2>
-                      <p>We couldn't find any data to display.</p>
-                    </div>
+                    {buttonClick === "conciso"
+                      ? Array.from({ length: 3 }).map((_, idx) => (
+                          <div key={idx} className="no-data-container5 table">
+                            <h2>No Data Found</h2>
+                            <p>We couldn't find any data to display.</p>
+                          </div>
+                        ))
+                      : buttonClick === "scoreScene"
+                      ? Array.from({ length: 3 }).map((_, idx) => (
+                          <div key={idx} className="no-data-container5 table">
+                            <h2>No Data Found</h2>
+                            <p>We couldn't find any data to display.</p>
+                          </div>
+                        ))
+                      : /* default */
+                        Array.from({ length: 5 }).map((_, idx) => (
+                          <div key={idx} className="no-data-container5 table">
+                            <h2>No Data Found</h2>
+                            <p>We couldn't find any data to display.</p>
+                          </div>
+                        ))}
                   </div>
                 </td>
               </tr>

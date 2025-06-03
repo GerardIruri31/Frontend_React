@@ -153,8 +153,7 @@
   cursor: pointer;
   font-weight: bold;
   transition: background-color 0.3s;
-  margin-left: auto;
-  margin-right: auto;
+
   height: 40px;
   width: auto;
   min-width: 150px;
@@ -163,6 +162,13 @@
 
 .dbquery-button:hover {
   background-color: #c9302c;
+}
+
+.dbquery-buttons-group {
+  display: flex;
+  justify-content: center; /* <-- Centra los botones */
+  gap: 12px;
+  margin-top: 16px;
 }
 
 /* Contenedor de resultados */

@@ -49,9 +49,15 @@ export const msalConfig = {
     authority: b2cPolicies.authorities.signUpSignIn.authority, // Choose SUSI as your default authority.
     knownAuthorities: [b2cPolicies.authorityDomain], // Mark your B2C tenant's domain as trusted.
     // a dónde vuelve luego del login
-    redirectUri: "https://capp-reactv1.thankfulfield-1f17e46d.centralus.azurecontainerapps.io", // You must register this URI on Azure Portal/App Registration. Defaults to window.location.origin
+    //redirectUri: "http://localhost:5173",
+    redirectUri:
+      "https://capp-reactv1.thankfulfield-1f17e46d.centralus.azurecontainerapps.io",
+    //You must register this URI on Azure Portal/App Registration. Defaults to window.location.origin
     // a dónde vuelve luego del logout
-    postLogoutRedirectUri: "https://capp-reactv1.thankfulfield-1f17e46d.centralus.azurecontainerapps.io", // Indicates the page to navigate after logout.
+    //postLogoutRedirectUri: "http://localhost:5173",
+    postLogoutRedirectUri:
+      "https://capp-reactv1.thankfulfield-1f17e46d.centralus.azurecontainerapps.io",
+    //Indicates the page to navigate after logout.
     navigateToLoginRequestUrl: false, // If "true", will navigate back to the original request location before processing the auth code response.
   },
   cache: {
