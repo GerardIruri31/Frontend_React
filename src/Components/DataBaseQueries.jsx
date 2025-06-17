@@ -119,6 +119,8 @@ const DataBaseQueries = () => {
     "Number of Scene",
     "Scene Name",
     "Scene Score",
+    "View Average",
+    "Interaction Average",
   ];
 
   // Luego, en el JSX, antes de return:
@@ -378,6 +380,9 @@ const DataBaseQueries = () => {
             "Number of Scene": record["scene_code"] || "Not found: N/A",
             "Scene Name": record["scene"] || "Not found: N/A",
             "Scene Score": record["score_scene"] || "Not found: N/A",
+            "View Average": record["promviews"] || "Not found: N/A",
+            "Interaction Average":
+              record["prominteracciones"] || "Not found: N/A",
           }));
           setRecords(filteredData);
           const registrosProcesados = data.length;
@@ -986,11 +991,33 @@ const DataBaseQueries = () => {
               records.slice(0, 20).map((record, rowIndex) => (
                 <tr key={rowIndex}>
                   {columns.map((col) => {
-                    if (col === "Scene Score") {
-                      const rawValue = record[col]; // Ej: 0.5 o 0.346
-                      const numValue = Number(rawValue) || 0; // Convertimos a number (si viene como string)
+                    if (col === "Scene Score" || col === "Engagement Rate") {
+                      let rawValue = record[col];
+                      if (rawValue == "Not found: N/A") {
+                        rawValue = "0";
+                      }
+                      const numValue = parseFloat(rawValue) || 0; // Convertimos a number (si viene como string)
                       const formatted = numValue.toFixed(2); // Siempre dos decimales: "0.50", "0.35", "0.34", etc.
                       return <td key={col}>{formatted}</td>;
+                    }
+
+                    if (
+                      col === "View Average" ||
+                      col === "Interaction Average" ||
+                      col === "# of Hashtags" ||
+                      col === "Interactions" ||
+                      col === "Saves" ||
+                      col === "Reposted" ||
+                      col === "Comments" ||
+                      col === "Likes" ||
+                      col === "Views"
+                    ) {
+                      let rawValue = record[col]; // Ej: 0.5 o 0.346
+                      if (rawValue == "Not found: N/A") {
+                        rawValue = "0";
+                      }
+                      const numValue = Number(rawValue) || 0; // Convertimos a number (si viene como string)
+                      return <td key={col}>{numValue}</td>;
                     }
 
                     // Si la columna es "Post URL", renderiza el link con ID de video
@@ -1054,7 +1081,7 @@ const DataBaseQueries = () => {
                           </div>
                         ))
                       : buttonClick === "scoreScene"
-                      ? Array.from({ length: 3 }).map((_, idx) => (
+                      ? Array.from({ length: 4 }).map((_, idx) => (
                           <div key={idx} className="no-data-container5 table">
                             <h2>No Data Found</h2>
                             <p>We couldn't find any data to display.</p>
