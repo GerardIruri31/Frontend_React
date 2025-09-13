@@ -113,12 +113,6 @@ body {
   transform: scale(1.03); /* 🔥 Ajusta el efecto de hover */
 }
 
-.full-width-button {
-  grid-column: span 2; /* Ocupará dos columnas */
-  width: 100%; /* Se ajusta al ancho */
-  height: 77px;
-}
-
 .material-icons {
   font-size: 38px; /* 🔥 Reduce el tamaño del icono */
   margin-right: 12px;

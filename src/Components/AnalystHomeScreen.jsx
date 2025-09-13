@@ -4,10 +4,10 @@ import "./AnalystHomeScreen.css";
 import clickSound from "../Sounds/clicksound.mp3"; // Asegúrate de tener este archivo en la carpeta src
 import { useMsal } from "@azure/msal-react";
 
-const HomeScreen = ({rol, email, name}) => {
+const HomeScreen = ({ rol, email, name }) => {
   const { instance } = useMsal();
   const navigate = useNavigate();
-    
+
   const handleSelectChange = (event) => {
     playSound();
     const selectedValue = event.target.value;
@@ -54,6 +54,15 @@ const HomeScreen = ({rol, email, name}) => {
         </div>
 
         <div className="buttons-grid77">
+          <button
+            className="home-button77"
+            onClick={() => {
+              navigate("/book-graphs");
+              playSound();
+            }}
+          >
+            <span className="icono-grande77">menu_book</span> Book Graphs
+          </button>
           <button
             className="home-button77"
             onClick={() => {
@@ -104,8 +113,6 @@ const HomeScreen = ({rol, email, name}) => {
           </button>*/}
         </div>
       </main>
-
-      
 
       <footer className="home-footer">
         <span className="material-icons social-icon">camera_alt</span>{" "}

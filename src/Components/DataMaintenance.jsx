@@ -42,7 +42,9 @@ const DataMaintenance = () => {
     "Scene name": "m_escenalibro",
     "Type post": "m_tipopost",
     Publisher: "m_posteadorasistente",
-    "Post meta": "m_metaposteadorasistente",
+    "Post meta PA": "m_metaposteadorasistente",
+    "Post meta Author": "m_metapostautora", // ✅ nuevo
+    "Post meta Book": "m_metapostlibro",
   };
 
   // Diccionarios de campos
@@ -106,7 +108,7 @@ const DataMaintenance = () => {
       "Actualization Hour": "horaactualizacionregistro" || "Not found: N/A",
     },
 
-    "Post meta": {
+    "Post meta PA": {
       "PA Code": "codposteador" || "Not found: N/A",
       "Start Date": "fecinicioperiodometa" || "Not found: N/A",
       "Finish Date": "fecfinperiodometa" || "Not found: N/A",
@@ -117,6 +119,30 @@ const DataMaintenance = () => {
       "Creation Hour": "horacreacionregistro" || "Not found: N/A",
       "Actualization Date": "fecactualizacionregistro" || "Not found: N/A",
       "Actualization Hour": "horaactualizacionregistro" || "Not found: N/A",
+    },
+    "Post meta Author": {
+      "Author Code": "codautora",
+      "Month Code": "codmes",
+      "Post Meta": "numposteometa",
+      "Active Record?": "flvigente",
+      "Audit User": "codusuarioauditoria",
+      "Creation Date": "fecreacionregistro",
+      "Creation Hour": "horacreacionregistro",
+      "Actualization Date": "fecactualizacionregistro",
+      "Actualization Hour": "horaactualizacionregistro",
+    },
+
+    // ✅ Nuevo
+    "Post meta Book": {
+      "Book Code": "codlibro",
+      "Month Code": "codmes",
+      "Post Meta": "numposteometa",
+      "Active Record?": "flvigente",
+      "Audit User": "codusuarioauditoria",
+      "Creation Date": "fecreacionregistro",
+      "Creation Hour": "horacreacionregistro",
+      "Actualization Date": "fecactualizacionregistro",
+      "Actualization Hour": "horaactualizacionregistro",
     },
   };
 
@@ -205,8 +231,20 @@ const DataMaintenance = () => {
       case "Publisher":
         handleShowDbRecords(categories["Publisher"], Tables["Publisher"]);
         break;
-      case "Post meta":
-        handleShowDbRecords(categories["Post meta"], Tables["Post meta"]);
+      case "Post meta PA":
+        handleShowDbRecords(categories["Post meta PA"], Tables["Post meta PA"]);
+        break;
+      case "Post meta Author":
+        handleShowDbRecords(
+          categories["Post meta Author"],
+          Tables["Post meta Author"]
+        );
+        break;
+      case "Post meta Book":
+        handleShowDbRecords(
+          categories["Post meta Book"],
+          Tables["Post meta Book"]
+        );
         break;
       default:
         console.warn(

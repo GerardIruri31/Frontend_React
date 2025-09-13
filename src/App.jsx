@@ -16,6 +16,7 @@ import DataMaintenance from "./Components/DataMaintenance";
 import PaGraphs from "./Components/PaGraphs";
 import AuthorGraphs from "./Components/AuthorGraphs";
 import AnalystHomeScreen from "./Components/AnalystHomeScreen";
+import BookGraphs from "./Components/BookGraphs";
 
 import "./App.css";
 
@@ -158,6 +159,14 @@ const App = () => {
             element={
               <PrivateRoute>
                 <AuthorGraphs />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/book-graphs"
+            element={
+              <PrivateRoute>
+                <BookGraphs />
               </PrivateRoute>
             }
           />

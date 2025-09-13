@@ -4,8 +4,7 @@ import "./HomeScreen.css";
 import clickSound from "../Sounds/clicksound.mp3"; // Asegúrate de tener este archivo en la carpeta src
 import { useMsal } from "@azure/msal-react";
 
-
-const HomeScreen = ({rol, email, name}) => {
+const HomeScreen = ({ rol, email, name }) => {
   const { instance } = useMsal();
   const navigate = useNavigate();
 
@@ -58,6 +57,15 @@ const HomeScreen = ({rol, email, name}) => {
           <button
             className="home-button"
             onClick={() => {
+              navigate("/book-graphs");
+              playSound();
+            }}
+          >
+            <span className="material-icons">menu_book</span> Book Graphs
+          </button>
+          <button
+            className="home-button"
+            onClick={() => {
               navigate("/author-graphs");
               playSound();
             }}
@@ -95,7 +103,7 @@ const HomeScreen = ({rol, email, name}) => {
             <span className="material-icons">storage</span> Database Queries
           </button>
           <button
-            className="home-button full-width-button"
+            className="home-button"
             onClick={() => {
               navigate("/data-maintenance");
               playSound();
